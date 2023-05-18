@@ -24,22 +24,28 @@ public class getCurrencyByCodeServlet extends HttpServlet {
 
         if (currencyCode == null) {
             String curCode = getCurrencyFromUrl(req);
-            CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
+            System.out.println(curCode);
+            if (!isCurrencyExistInRequest(curCode)) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            } else {
+                CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
 
-            try {
-                Currencies currencies = cdi.getByCode(curCode);
-                ObjectToJson otj = new ObjectToJson();
-                if (!cdi.isExist(currencies)) {
-                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    printWriter.write(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
-                } else {
-                    resp.setStatus(HttpServletResponse.SC_OK);
-                    printWriter.write(otj.getSimpleJson(currencies));
+                try {
+                    Currencies currencies = cdi.getByCode(curCode);
+                    ObjectToJson otj = new ObjectToJson();
+                    if (!cdi.isExist(currencies)) {
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        printWriter.write(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                        printWriter.write(otj.getSimpleJson(currencies));
+                    }
+                } catch (SQLException e) {
+                    resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                    throw new RuntimeException(e);
                 }
-            } catch (SQLException e) {
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
-                throw new RuntimeException(e);
             }
 
         } else if (currencyCode.equals("") || !currencyCode.matches("[a-zA-Z]*")) {
@@ -58,6 +64,6 @@ public class getCurrencyByCodeServlet extends HttpServlet {
     }
 
     private boolean isCurrencyExistInRequest(String stringUrl) {
-        return !stringUrl.equals("currency");
+        return !stringUrl.equals("CURRENCY");
     }
 }
