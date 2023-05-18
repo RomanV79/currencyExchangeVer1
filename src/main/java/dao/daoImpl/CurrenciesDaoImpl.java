@@ -40,7 +40,7 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
 
         } catch (SQLException e) {
             if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
-                throw new CurrencyAlreadyExistsException("Currensy already exist");
+                throw new CurrencyAlreadyExistsException("Currency already exist");
             }
 
         } finally {
@@ -187,5 +187,10 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
                 connection.close();
             }
         }
+    }
+
+    @Override
+    public boolean isExist(Currencies currencies) throws SQLException {
+        return currencies.getId() != 0;
     }
 }

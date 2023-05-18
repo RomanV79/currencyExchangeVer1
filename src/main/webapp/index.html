@@ -17,39 +17,44 @@
     <section>
         <div class="container p-5 text-left">
             <div class="row g-5 row-cols-2">
-                <div class="col">
-                    <form method="post" action="/currencies">
-                        <legend>Добавление новой валюты в справочник</legend>
-                    <div class="mb-3">
-                        <label for="1" class="form-label">Сокращённое наименование валюты</label>
-                        <input type="text" class="form-control" id="1" name = "currency-code" aria-describedby="currency-code">
-                        <label for="2" class="form-label">Полное наименование валюты</label>
-                        <input type="text" class="form-control" id="2" name="currency-fullname" aria-describedby="currency-fullname">
-                        <label for="3" class="form-label">Символ валюты</label>
-                        <input type="text" class="form-control" id="3" name="currency-sign" aria-describedby="currency-sign">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Добавить</button>
-                    </form>
-                </div>
-                <div class="col">
-                    <form action="/currency" method = "get">
-
-                        <legend>Получение информации о валюте</legend>
-                        <h5>Получить информацию по одной валюте</h5>
+                <div class="col p-4">
+                    <div class="p-3 bg-light border">
+                        <form method="post" action="/currencies">
+                            <legend>Добавление новой валюты в справочник</legend>
+                            <br>
                         <div class="mb-3">
-                            <label for="11" class="form-label">Сокращённое наименование валюты, например: USD</label>
-                            <input type="text" class="form-control" id="11" name = "currency-code" aria-describedby="currency-code">
+                            <label for="1" class="form-label">Сокращённое наименование валюты</label>
+                            <input type="text" class="form-control" id="1" name = "currency-code" aria-describedby="currency-code">
+                            <label for="2" class="form-label">Полное наименование валюты</label>
+                            <input type="text" class="form-control" id="2" name="currency-fullname" aria-describedby="currency-fullname">
+                            <label for="3" class="form-label">Символ валюты</label>
+                            <input type="text" class="form-control" id="3" name="currency-sign" aria-describedby="currency-sign">
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Получить</button>
-                    </form>
-                    <br>
+
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col p-4">
+                    <div class="p-3 bg-light border">
+                        <form action="/currency" method = "get">
+
+                            <legend>Получение информации о валюте</legend>
+                            <br>
+                            <div class="mb-3">
+                                <label for="11" class="form-label">Сокращённое наименование валюты, например: USD</label>
+                                <input type="text" class="form-control" id="11" name = "currency-code" aria-describedby="currency-code">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Получить</button>
+                        </form>
+                    </div>
                     <br>
 
-                    <div>
+                    <div class="p-3 bg-light border">
                         <h5>Получить данные по всем валютам в справочнике</h5>
-                        <form action="/currencies" method="get">
+                        <form class="mt-3" action="/currencies" method="get">
                             <button type="submit" class="btn btn-primary">Получить</button>
                         </form>
                     </div>
