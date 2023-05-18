@@ -16,12 +16,8 @@ public class ObjectToJson {
         return jsonStr;
     }
 
-    public String getListToJson(List<Currencies> currenciesList) {
-        String jsonStr = "";
-
+    public <T> String getListToJson(List<T> t) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        jsonStr = gson.toJson(currenciesList);
-
-        return jsonStr;
+        return gson.toJson(t);
     }
 }
