@@ -1,5 +1,6 @@
 package dao.daoImpl;
 
+import MyException.CurrencyAlreadyExistsException;
 import Utils.UtilsDB;
 import dao.ExchangeRatesDAO;
 import entity.Currencies;
@@ -12,9 +13,10 @@ import java.util.List;
 public class ExchangeRatesDaoImpl extends UtilsDB implements ExchangeRatesDAO {
 
     @Override
-    public void add(ExchangeRates exchangeRates) {
+    public int add(ExchangeRates exchangeRates) throws CurrencyAlreadyExistsException {
         String sql = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate)" +
                 " VALUES(?, ?, ?)";
+        int id = 0;
 
 
         try (Connection connection = getConnect();
@@ -26,9 +28,21 @@ public class ExchangeRatesDaoImpl extends UtilsDB implements ExchangeRatesDAO {
 
             preparedStatement.executeUpdate();
 
+            try (ResultSet resultId = preparedStatement.getGeneratedKeys()) {
+                if (resultId.next()) {
+                    id = resultId.getInt(1);
+                } else {
+                    connection.rollback();
+                    throw new SQLException("No ID returned...");
+                }
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
+                throw new CurrencyAlreadyExistsException("Currency already exist");
+            }
         }
+
+        return id;
     }
 
     @Override
@@ -154,5 +168,30 @@ public class ExchangeRatesDaoImpl extends UtilsDB implements ExchangeRatesDAO {
             throw new RuntimeException(e);
         }
         return resultList;
+    }
+
+    @Override
+    public ExchangeRates getExchangeRateByCurPair(Currencies curBase, Currencies curTarget) {
+        ExchangeRates exchangeRates = new ExchangeRates();
+        String sql = "SELECT * FROM ExchangeRates\n" +
+                    "WHERE BaseCurrencyId = ? and TargetCurrencyId = ?";
+
+        try (Connection connection = getConnect();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, curBase.getId());
+            preparedStatement.setInt(2, curTarget.getId());
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            exchangeRates.setId(resultSet.getInt("ID"));
+            exchangeRates.setBaseCurrencyId(curBase);
+            exchangeRates.setTargetCurrencyId(curTarget);
+            exchangeRates.setRate(resultSet.getDouble("Rate"));
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return exchangeRates;
     }
 }

@@ -8,12 +8,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.ObjectToJson;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Map;
+
+import static service.ObjectToJson.getListToJson;
+import static service.ObjectToJson.getSimpleJson;
 
 @WebServlet(value = "/currencies")
 public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
@@ -27,7 +29,6 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
         String signCurrency = params.get("currency-sign")[0];
 
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        ObjectToJson soj = new ObjectToJson();
         response.setContentType("application/json;charset=utf-8");
         PrintWriter printWriter = response.getWriter();
         String result;
@@ -35,7 +36,7 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
         if (!codeCurrency.equals("") & !fullNameCurrency.equals("") & !signCurrency.equals("") & codeCurrency.matches("[A-Z]*")) {
             try {
                 int id = cdi.add(new Currencies(codeCurrency, fullNameCurrency, signCurrency));
-                result = soj.getSimpleJson(cdi.getById(id));
+                result = getSimpleJson(cdi.getById(id));
                 response.setStatus(HttpServletResponse.SC_OK);
                 printWriter.write(result);
 
@@ -61,10 +62,9 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         resp.setContentType("application/json;charset=utf-8");
         PrintWriter printWriter = resp.getWriter();
-        ObjectToJson otj = new ObjectToJson();
 
         try {
-            printWriter.write(otj.getListToJson(cdi.getAll()));
+            printWriter.write(getListToJson(cdi.getAll()));
             resp.setStatus(HttpServletResponse.SC_OK);
 
         } catch (SQLException e) {

@@ -7,14 +7,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.ObjectToJson;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
+import static service.ObjectToJson.getSimpleJson;
+
 @WebServlet("/currency/*")
-public class getCurrencyByCodeServlet extends HttpServlet {
+public class GetCurrencyByCodeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=utf-8");
@@ -33,13 +34,12 @@ public class getCurrencyByCodeServlet extends HttpServlet {
 
                 try {
                     Currencies currencies = cdi.getByCode(curCode);
-                    ObjectToJson otj = new ObjectToJson();
                     if (!cdi.isExist(currencies)) {
                         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                         printWriter.write(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
                     } else {
                         resp.setStatus(HttpServletResponse.SC_OK);
-                        printWriter.write(otj.getSimpleJson(currencies));
+                        printWriter.write(getSimpleJson(currencies));
                     }
                 } catch (SQLException e) {
                     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -50,10 +50,10 @@ public class getCurrencyByCodeServlet extends HttpServlet {
 
         } else if (currencyCode.equals("") || !currencyCode.matches("[a-zA-Z]*")) {
             printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } else {
             String path = "/currency/" + currencyCode;
             resp.sendRedirect(path);
-
         }
     }
 
