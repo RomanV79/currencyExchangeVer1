@@ -15,10 +15,10 @@
         </nav>
     </header>
     <section>
-        <div class="container p-5 text-left">
-            <div class="row g-5 row-cols-2">
+        <div class="container p-2 text-left">
+            <div class="row row-cols-2">
                 <div class="col p-4">
-                    <div class="p-3 bg-light border">
+                    <div class="shadow p-4 bg-light border rounded">
                         <form method="post" action="/currencies">
                             <legend>Добавление новой валюты в справочник</legend>
                             <br>
@@ -37,7 +37,7 @@
                     </div>
                 </div>
                 <div class="col p-4">
-                    <div class="p-3 bg-light border">
+                    <div class="shadow p-4 bg-light border rounded">
                         <form action="/currency" method = "get">
 
                             <legend>Получение информации о валюте</legend>
@@ -52,15 +52,54 @@
                     </div>
                     <br>
 
-                    <div class="p-3 bg-light border">
+                    <div class="shadow p-4 pt-3 pb-3 bg-light border rounded">
                         <h5>Получить данные по всем валютам в справочнике</h5>
                         <form class="mt-3" action="/currencies" method="get">
                             <button type="submit" class="btn btn-primary">Получить</button>
                         </form>
                     </div>
                 </div>
-                <div class="col">Column</div>
-                <div class="col">Column</div>
+                <div class="col p-4">
+                    <div class="shadow p-4 bg-light border rounded">
+                        <form method="post" action="/exchangeRates">
+                            <legend>Добавление нового курса в справочник</legend>
+                            <br>
+                            <div class="mb-3">
+                                <label for="21" class="form-label">Код базовой валюты</label>
+                                <input type="text" class="form-control" id="21" name = "baseCurrencyCode">
+                                <label for="22" class="form-label">Код валюты результата</label>
+                                <input type="text" class="form-control" id="22" name="targetCurrencyCode">
+                                <label for="23" class="form-label">Курс</label>
+                                <input type="text" class="form-control" id="23" name="rate">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Добавить</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col p-4">
+                    <div class="shadow p-4 bg-light border rounded">
+                        <form action="/exchangeRate" method = "get">
+
+                            <legend>Получение информации о валютном курсе</legend>
+                            <br>
+                            <div class="mb-3">
+                                <label for="31" class="form-label">Сокращённое наименование валютных пар, например: USDEUR</label>
+                                <input type="text" class="form-control" id="31" name = "exchangeRateField" aria-describedby="currency-code">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Получить</button>
+                        </form>
+                    </div>
+                    <br>
+
+                    <div class="shadow p-4 pt-3 pb-3 bg-light border rounded">
+                        <h5>Получить данные по всем курсам в справочнике</h5>
+                        <form class="mt-3" action="/exchangeRates" method="get">
+                            <button type="submit" class="btn btn-primary">Получить</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 

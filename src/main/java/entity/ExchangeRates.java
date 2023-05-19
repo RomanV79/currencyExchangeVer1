@@ -1,8 +1,12 @@
 package entity;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ExchangeRates {
     private int id;
+    @SerializedName("baseCurrency")
     private Currencies baseCurrencyId;
+    @SerializedName("targetCurrency")
     private Currencies targetCurrencyId;
     private double rate;
 
