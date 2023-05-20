@@ -1,0 +1,12 @@
+// get currency by name after "/"
+
+GET http://localhost:8080//currency/EUR
+Accept: application/json
+
+###
+GET http://localhost:8080//currency/NNN
+Accept: application/json
+
+###
+GET http://localhost:8080//currency/
+Accept: application/json

@@ -1,0 +1,7 @@
+POST http://localhost:8080/currencies
+Content-Type: application/x-www-form-urlencoded
+
+name=HHHHHH&code=BBB&sign=999
+
+###
+

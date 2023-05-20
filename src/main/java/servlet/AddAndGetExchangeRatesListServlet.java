@@ -24,38 +24,45 @@ public class AddAndGetExchangeRatesListServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json;charset=utf-8");
+        PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("utf-8");
         ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
-        PrintWriter printWriter = resp.getWriter();
 
         try {
-            printWriter.write(getListToJson(erdi.getAll()));
+            out.print(getListToJson(erdi.getAll()));
             resp.setStatus(HttpServletResponse.SC_OK);
+            out.flush();
         } catch (Exception e) {
-            printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+            out.print(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.flush();
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json;charset=utf-8");
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("utf-8");
         Map<String, String[]> params = req.getParameterMap();
         String baseCurrency = params.get("baseCurrencyCode")[0];
         String targetCurrency = params.get("targetCurrencyCode")[0];
         String rate = params.get("rate")[0];
 
-        PrintWriter printWriter = resp.getWriter();
+        PrintWriter out = resp.getWriter();
 
         try {
-            printWriter.write(getResponseAfterAdd(baseCurrency, targetCurrency, rate));
+            out.print(getResponseAfterAdd(baseCurrency, targetCurrency, rate));
             resp.setStatus(HttpServletResponse.SC_OK);
+            out.flush();
         } catch (CurrencyPairIsNotValid | CurrencyDidNotExist e) {
-            printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.flush();
         } catch (CurrencyAlreadyExistsException e) {
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            printWriter.write(AlertMessage.MESSAGE_CURRENCY_ALREADY_EXIST);
+            out.print(AlertMessage.MESSAGE_CURRENCY_ALREADY_EXIST);
+            out.flush();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

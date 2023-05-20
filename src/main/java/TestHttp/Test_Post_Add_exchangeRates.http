@@ -1,0 +1,7 @@
+POST http://localhost:8080/exchangeRates
+Content-Type: application/x-www-form-urlencoded
+
+baseCurrencyCode=CNY&targetCurrencyCode=EUR&rate=0.99
+
+###
+

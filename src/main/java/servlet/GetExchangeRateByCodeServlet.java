@@ -18,33 +18,60 @@ import static service.ExchangeRateService.getExchangeRatePair;
 @WebServlet("/exchangeRate/*")
 public class GetExchangeRateByCodeServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json;charset=utf-8");
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("utf-8");
         String exchangeRateField = req.getParameter("exchangeRateField");
-        PrintWriter printWriter = resp.getWriter();
+        PrintWriter out = resp.getWriter();
+
+        // эти две строки - костыль-заглушка для метода patch
+        String methodType = req.getParameter("patch");
+        if (methodType != null) return;
 
         if (exchangeRateField == null) {
             String pairReq = getPairFromUrl(req);
             if (isRequestExist(pairReq)) {
                 try {
                     String answer = getExchangeRatePair(pairReq);
-                    printWriter.write(answer);
+                    out.print(answer);
                     resp.setStatus(HttpServletResponse.SC_OK);
+                    out.flush();
                 } catch (CurrencyPairIsNotValid | ExchangeRatesIsNotExistException e) {
                     resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+                    out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+                    out.flush();
                 } catch (SQLException e) {
                     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                    out.print(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                    out.flush();
                 }
             }
         } else if (exchangeRateField.equals("") || !exchangeRateField.matches("[a-zA-Z]*")) {
-            printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.flush();
         } else {
             String path = "/exchangeRate/" + exchangeRateField.toUpperCase();
             resp.sendRedirect(path);
+            out.flush();
         }
+    }
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String methodType = req.getParameter("patch");
+        System.out.println("methodType: " + methodType);
+
+        String method = req.getMethod();
+        if (method.equals("PATCH") || methodType != null) {
+            this.doPatch(req, resp);
+        }
+
+        this.doGet(req, resp);
+    }
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("At patch method");
     }
 
     private static String getPairFromUrl(HttpServletRequest req) {

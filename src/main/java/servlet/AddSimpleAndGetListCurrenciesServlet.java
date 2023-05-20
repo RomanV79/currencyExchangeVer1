@@ -4,6 +4,7 @@ import MyException.CurrencyAlreadyExistsException;
 import Utils.AlertMessage;
 import dao.daoImpl.CurrenciesDaoImpl;
 import entity.Currencies;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,64 +13,71 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Map;
 
 import static service.ObjectToJson.getListToJson;
 import static service.ObjectToJson.getSimpleJson;
 
-@WebServlet(value = "/currencies")
+@WebServlet(urlPatterns = "/currencies")
 public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
-
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        Map<String, String[]> params = request.getParameterMap();
-        String codeCurrency = params.get("currency-code")[0].toUpperCase();
-        String fullNameCurrency = params.get("currency-fullname")[0];
-        String signCurrency = params.get("currency-sign")[0];
+        String name = req.getParameter("name");
+        String code = req.getParameter("code").toUpperCase();
+        String sign = req.getParameter("sign");
+        System.out.println("name: " + name);
+        System.out.println("code: " + code);
+        System.out.println("sign: " + sign);
 
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        response.setContentType("application/json;charset=utf-8");
-        PrintWriter printWriter = response.getWriter();
+        PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("utf-8");
         String result;
 
-        if (!codeCurrency.equals("") & !fullNameCurrency.equals("") & !signCurrency.equals("") & codeCurrency.matches("[A-Z]*")) {
+        if (!code.equals("") & !name.equals("") & !sign.equals("") & code.matches("[A-Z]*")) {
             try {
-                int id = cdi.add(new Currencies(codeCurrency, fullNameCurrency, signCurrency));
+                int id = cdi.add(new Currencies(code, name, sign));
                 result = getSimpleJson(cdi.getById(id));
-                response.setStatus(HttpServletResponse.SC_OK);
-                printWriter.write(result);
+                resp.setStatus(HttpServletResponse.SC_OK);
+                out.println(result);
+                out.flush();
 
             } catch (CurrencyAlreadyExistsException | SQLException e) {
                 e.printStackTrace();
                 if (e instanceof CurrencyAlreadyExistsException) {
-                    response.setStatus(HttpServletResponse.SC_CONFLICT);
-                    printWriter.write(AlertMessage.MESSAGE_CURRENCY_ALREADY_EXIST);
+                    resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                    out.print(AlertMessage.MESSAGE_CURRENCY_ALREADY_EXIST);
+                    out.flush();
                 } else {
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                    resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    out.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                    out.flush();
                 }
             }
         } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            printWriter.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            out.flush();
         }
-
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        resp.setContentType("application/json;charset=utf-8");
-        PrintWriter printWriter = resp.getWriter();
+        PrintWriter out = resp.getWriter();
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("utf-8");
 
         try {
-            printWriter.write(getListToJson(cdi.getAll()));
             resp.setStatus(HttpServletResponse.SC_OK);
+            out.print(getListToJson(cdi.getAll()));
+            out.flush();
 
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+            out.print(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+            out.flush();
         }
     }
 }

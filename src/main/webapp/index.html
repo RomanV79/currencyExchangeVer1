@@ -22,17 +22,16 @@
                         <form method="post" action="/currencies">
                             <legend>Добавление новой валюты в справочник</legend>
                             <br>
-                        <div class="mb-3">
-                            <label for="1" class="form-label">Сокращённое наименование валюты</label>
-                            <input type="text" class="form-control" id="1" name = "currency-code" aria-describedby="currency-code">
-                            <label for="2" class="form-label">Полное наименование валюты</label>
-                            <input type="text" class="form-control" id="2" name="currency-fullname" aria-describedby="currency-fullname">
-                            <label for="3" class="form-label">Символ валюты</label>
-                            <input type="text" class="form-control" id="3" name="currency-sign" aria-describedby="currency-sign">
-                        </div>
+                            <div class="mb-3">
+                                <label for="1" class="form-label">Сокращённое наименование валюты</label>
+                                <input type="text" class="form-control" id="1" name="code" aria-describedby="code">
+                                <label for="2" class="form-label">Полное наименование валюты</label>
+                                <input type="text" class="form-control" id="2" name="name" aria-describedby="name">
+                                <label for="3" class="form-label">Символ валюты</label>
+                                <input type="text" class="form-control" id="3" name="sign" aria-describedby="sign">
+                            </div>
 
-
-                        <button type="submit" class="btn btn-primary">Добавить</button>
+                            <button type="submit" class="btn btn-primary">Добавить</button>
                         </form>
                     </div>
                 </div>
@@ -107,9 +106,9 @@
                             <br>
                             <div class="mb-3">
                                 <label for="41" class="form-label">Сокращённое наименование валютных пар, например: USDEUR</label>
-                                <input type="text" class="form-control" id="41" name = "currencyPair">
+                                <input type="text" class="form-control" id="41" name = "patch" method-type="patch">
                                 <label for="43" class="form-label">Новый курс</label>
-                                <input type="text" class="form-control" id="43" name="newRate">
+                                <input type="text" class="form-control" id="43" name="rate">
                             </div>
 
                             <button type="submit" class="btn btn-primary">Обновить</button>

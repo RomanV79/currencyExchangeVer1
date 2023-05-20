@@ -1,0 +1,9 @@
+// get all currencies in data base
+###
+GET http://localhost:8080/currencies
+Accept: application/json
+
+
+
+
+
