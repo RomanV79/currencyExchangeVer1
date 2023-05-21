@@ -1,6 +1,7 @@
 package dao.daoImpl;
 
 import MyException.CurrencyAlreadyExistsException;
+import MyException.CurrencyDidNotExist;
 import Utils.UtilsDB;
 import dao.CurrenciesDAO;
 import entity.Currencies;
@@ -90,15 +91,14 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
     }
 
     @Override
-    public Currencies getByCode(String code) throws SQLException {
-        Connection connection = getConnect();
+    public Currencies getByCode(String code) throws SQLException, CurrencyDidNotExist {
 
         Currencies currencies = new Currencies();
-        PreparedStatement preparedStatement = null;
         String sql = "SELECT * FROM Currencies WHERE Code = ?";
 
-        try {
-            preparedStatement = connection.prepareStatement(sql);
+        try (Connection connection = getConnect();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
+
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -110,15 +110,8 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
         }
-
+        if (currencies.getId() == 0) throw new CurrencyDidNotExist("Currency didn't exist");
         return currencies;
     }
 
@@ -161,15 +154,14 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
 
     @Override
     public void update(Currencies currencies) throws SQLException {
-        Connection connection = getConnect();
-        PreparedStatement preparedStatement = null;
 
         String sql = "UPDATE Currencies" +
                 " SET Code = ?, FullName = ?, Sign = ?" +
                 " WHERE ID = ?";
 
-        try {
-            preparedStatement = connection.prepareStatement(sql);
+        try (Connection connection = getConnect();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
+
             preparedStatement.setString(1, currencies.getCode());
             preparedStatement.setString(2, currencies.getFullName());
             preparedStatement.setString(3, currencies.getSign());
@@ -179,13 +171,6 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 

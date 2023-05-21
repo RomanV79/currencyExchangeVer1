@@ -1,0 +1,7 @@
+PATCH http://localhost:8080/exchangeRate/USDRUB
+Content-Type: application/x-www-form-urlencoded
+
+rate = 999
+
+###
+

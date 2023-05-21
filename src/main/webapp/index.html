@@ -101,14 +101,14 @@
                 </div>
                 <div class="col p-4">
                     <div class="shadow p-4 bg-light border rounded">
-                        <form method="patch" action="/exchangeRate">
+                        <form method="get" action="/exchangeRate">
                             <legend>Обновление валютного курса</legend>
                             <br>
                             <div class="mb-3">
                                 <label for="41" class="form-label">Сокращённое наименование валютных пар, например: USDEUR</label>
-                                <input type="text" class="form-control" id="41" name = "patch" method-type="patch">
+                                <input type="text" class="form-control" id="41" name = "patch-form">
                                 <label for="43" class="form-label">Новый курс</label>
-                                <input type="text" class="form-control" id="43" name="rate">
+                                <input type="text" class="form-control" id="43" name="rate-form">
                             </div>
 
                             <button type="submit" class="btn btn-primary">Обновить</button>

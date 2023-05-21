@@ -1,5 +1,6 @@
 package servlet;
 
+import MyException.CurrencyDidNotExist;
 import Utils.AlertMessage;
 import dao.daoImpl.CurrenciesDaoImpl;
 import entity.Currencies;
@@ -41,10 +42,12 @@ public class GetCurrencyByCodeServlet extends HttpServlet {
                         resp.setStatus(HttpServletResponse.SC_OK);
                         printWriter.write(getSimpleJson(currencies));
                     }
+                } catch (CurrencyDidNotExist e) {
+                    printWriter.print(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 } catch (SQLException e) {
                     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     printWriter.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
-                    throw new RuntimeException(e);
                 }
             }
 
@@ -55,6 +58,7 @@ public class GetCurrencyByCodeServlet extends HttpServlet {
             String path = "/currency/" + currencyCode;
             resp.sendRedirect(path);
         }
+        printWriter.flush();
     }
 
     private static String getCurrencyFromUrl(HttpServletRequest req) {
