@@ -115,6 +115,24 @@
                         </form>
                     </div>
                 </div>
+                <div class="col p-4">
+                    <div class="shadow p-4 bg-light border rounded">
+                        <form method="get" action="/exchange">
+                            <legend>Обмен валюты</legend>
+                            <br>
+                            <div class="mb-3">
+                                <label for="51" class="form-label">Исходная валюта</label>
+                                <input type="text" class="form-control" id="51" name = "from">
+                                <label for="52" class="form-label">Валюта назначения</label>
+                                <input type="text" class="form-control" id="52" name = "to">
+                                <label for="53" class="form-label">Сумма</label>
+                                <input type="text" class="form-control" id="53" name="amount">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Рассчитать</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -102,7 +102,7 @@ public class GetExchangeRateByCodeServlet extends HttpServlet {
             } catch (CurrencyPairIsNotValid e) {
                 out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            } catch (CurrencyDidNotExist e) {
+            } catch (CurrencyDidNotExist |ExchangeRatesIsNotExistException e) {
                 out.print(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }

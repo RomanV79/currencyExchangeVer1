@@ -1,6 +1,7 @@
 package dao;
 
 import MyException.CurrencyAlreadyExistsException;
+import MyException.ExchangeRatesIsNotExistException;
 import entity.Currencies;
 import entity.ExchangeRates;
 
@@ -15,7 +16,7 @@ public interface ExchangeRatesDAO {
     // read
     ExchangeRates getById(int id);
     List<ExchangeRates> getAll();
-    ExchangeRates getExchangeRateByCurPair(Currencies curBase, Currencies curTarget);
+    ExchangeRates getExchangeRateByCurPair(Currencies curBase, Currencies curTarget) throws ExchangeRatesIsNotExistException;
 
     // update
     void update(ExchangeRates exchangeRates);

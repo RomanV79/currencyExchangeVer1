@@ -1,6 +1,7 @@
 package dao.daoImpl;
 
 import MyException.CurrencyAlreadyExistsException;
+import MyException.ExchangeRatesIsNotExistException;
 import Utils.UtilsDB;
 import dao.ExchangeRatesDAO;
 import entity.Currencies;
@@ -171,7 +172,7 @@ public class ExchangeRatesDaoImpl extends UtilsDB implements ExchangeRatesDAO {
     }
 
     @Override
-    public ExchangeRates getExchangeRateByCurPair(Currencies curBase, Currencies curTarget) {
+    public ExchangeRates getExchangeRateByCurPair(Currencies curBase, Currencies curTarget) throws ExchangeRatesIsNotExistException {
         ExchangeRates exchangeRates = new ExchangeRates();
         String sql = "SELECT * FROM ExchangeRates\n" +
                     "WHERE BaseCurrencyId = ? and TargetCurrencyId = ?";
@@ -187,6 +188,7 @@ public class ExchangeRatesDaoImpl extends UtilsDB implements ExchangeRatesDAO {
             exchangeRates.setBaseCurrencyId(curBase);
             exchangeRates.setTargetCurrencyId(curTarget);
             exchangeRates.setRate(resultSet.getDouble("Rate"));
+            if (exchangeRates.getId() == 0) throw new ExchangeRatesIsNotExistException("Exchange rate is nor exist");
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
