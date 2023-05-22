@@ -53,7 +53,8 @@ public class GetExchangeRateByCodeServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.flush();
         } else {
-            String path = "/exchangeRate/" + exchangeRateField.toUpperCase();
+            String fullPath = req.getRequestURL().toString();
+            String path = fullPath + "/" + exchangeRateField.toUpperCase();
             resp.sendRedirect(path);
             out.flush();
         }
