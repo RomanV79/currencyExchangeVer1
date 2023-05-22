@@ -17,56 +17,56 @@ public class ExchangeRateService {
     public static String getExchangeResult(String from, String to, String amount) throws CurrencyPairIsNotValid, RateOrAmountIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         from = from.toUpperCase();
         to = to.toUpperCase();
+        if (from.equals(to)) throw new CurrencyPairIsNotValid("Currency is not valid");
 
-        System.out.println(from);
-        System.out.println(to);
-
-        System.out.println("step #1");
         if (!isValidCurrency(from) || !isValidCurrency(to)) throw new CurrencyPairIsNotValid("Currency is not valid");
-        System.out.println("step between 1 an 2");
         if (!isValidRate(amount)) throw new RateOrAmountIsNotValid("Rate or amount is not valid");
 
-        System.out.println("step #2");
-        BigDecimal value = new BigDecimal(amount);
-        double amountDouble = value.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+        double amountDouble = Double.parseDouble(amount);
 
-        System.out.println("step #3");
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         Currencies baseCur = cdi.getByCode(from);
         Currencies targetCur = cdi.getByCode(to);
 
-        System.out.println("step #4");
         ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
         ExchangeRates exchangeRate;
-        double convertedAmount;
-        double rate;
+        double convertedAmountRow;
+        double rateRow;
         try {
             exchangeRate = erdi.getExchangeRateByCurPair(baseCur, targetCur);
-            rate = exchangeRate.getRate();
+            rateRow = exchangeRate.getRate();
         } catch (ExchangeRatesIsNotExistException e) {
             try {
                 exchangeRate = erdi.getExchangeRateByCurPair(targetCur, baseCur);
-                rate = 1 / exchangeRate.getRate();
+                rateRow = 1 / exchangeRate.getRate();
             } catch (ExchangeRatesIsNotExistException ex) {
                 Currencies currenciesUSD = cdi.getByCode("USD");
                 try {
                     ExchangeRates baseRatesUSD = erdi.getExchangeRateByCurPair(baseCur, currenciesUSD);
                     ExchangeRates targetRatesUSD = erdi.getExchangeRateByCurPair(currenciesUSD, targetCur);
-                    rate = baseRatesUSD.getRate() * targetRatesUSD.getRate();
+                    rateRow = baseRatesUSD.getRate() * targetRatesUSD.getRate();
                 } catch (ExchangeRatesIsNotExistException exc) {
                     throw new ExchangeRatesIsNotExistException("Exchange rates not exist");
                 }
             }
         }
-        convertedAmount = amountDouble * rate;
+
+        convertedAmountRow = amountDouble * rateRow;
+        BigDecimal valueAmount = new BigDecimal(convertedAmountRow);
+        double convertedAmount = valueAmount.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+        BigDecimal rateFormat = new BigDecimal(rateRow);
+        double rate = rateFormat.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 
         ExchangeRates exRateOriginal = new ExchangeRates(baseCur, targetCur, rate);
         String json = getSimpleJson(exRateOriginal);
-        Gson gson = new Gson();
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-        jsonObject.addProperty("amount", amount);
+        jsonObject.addProperty("amount", amountDouble);
         jsonObject.addProperty("convertedAmount", convertedAmount);
-        String result = jsonObject.toString();
+
+        String result = gson.toJson(jsonObject).replace("\"id\": 0,\n", "");
 
         return result;
     }
