@@ -17,7 +17,7 @@ import java.sql.SQLException;
 
 import static service.ExchangeRateService.getExchangeResult;
 
-@WebServlet(urlPatterns = "*/exchange")
+@WebServlet(urlPatterns = "/exchange")
 public class ExchangeServlet extends HttpServlet {
 
     @Override
