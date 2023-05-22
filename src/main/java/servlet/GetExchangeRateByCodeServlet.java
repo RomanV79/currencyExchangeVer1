@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import static service.ExchangeRateService.getExchangeRatePair;
 import static service.ExchangeRateService.getResponseAfterUpdate;
 
-@WebServlet("/exchangeRate/*")
+@WebServlet(urlPatterns = "*/exchangeRate/*")
 public class GetExchangeRateByCodeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

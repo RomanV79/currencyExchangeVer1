@@ -23,7 +23,7 @@ public class UtilsDB {
 
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", path));
-//            System.out.println("Connection DONE");
+
         } catch (SQLException e) {
             System.out.println("Connection FAIL");
             e.printStackTrace();

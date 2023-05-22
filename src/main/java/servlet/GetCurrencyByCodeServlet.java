@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 import static service.ObjectToJson.getSimpleJson;
 
-@WebServlet("/currency/*")
+@WebServlet(urlPatterns = "*/currency/*")
 public class GetCurrencyByCodeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

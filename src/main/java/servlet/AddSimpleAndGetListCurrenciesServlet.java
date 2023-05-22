@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import static service.ObjectToJson.getListToJson;
 import static service.ObjectToJson.getSimpleJson;
 
-@WebServlet(urlPatterns = "/currencies")
+@WebServlet(urlPatterns = "*/currencies")
 public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

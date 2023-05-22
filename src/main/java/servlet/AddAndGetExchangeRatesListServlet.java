@@ -19,7 +19,7 @@ import java.util.Map;
 import static service.ExchangeRateService.getResponseAfterAdd;
 import static service.ObjectToJson.getListToJson;
 
-@WebServlet("/exchangeRates")
+@WebServlet(urlPatterns = "*/exchangeRates")
 public class AddAndGetExchangeRatesListServlet extends HttpServlet {
 
     @Override

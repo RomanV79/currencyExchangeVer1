@@ -9,6 +9,7 @@ import dao.daoImpl.ExchangeRatesDaoImpl;
 import entity.Currencies;
 import entity.ExchangeRates;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import static service.ObjectToJson.getSimpleJson;
 
@@ -53,10 +54,10 @@ public class ExchangeRateService {
 
         convertedAmountRow = amountDouble * rateRow;
         BigDecimal valueAmount = new BigDecimal(convertedAmountRow);
-        double convertedAmount = valueAmount.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        double convertedAmount = valueAmount.setScale(2, RoundingMode.HALF_UP).doubleValue();
 
         BigDecimal rateFormat = new BigDecimal(rateRow);
-        double rate = rateFormat.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        double rate = rateFormat.setScale(2, RoundingMode.HALF_UP).doubleValue();
 
         ExchangeRates exRateOriginal = new ExchangeRates(baseCur, targetCur, rate);
         String json = getSimpleJson(exRateOriginal);
@@ -108,7 +109,7 @@ public class ExchangeRateService {
         ExchangeRates exchangeRates = erdi.getExchangeRateByCurPair(curBase, curTarget);
 
         BigDecimal value = new BigDecimal(rate);
-        double rateResult = value.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+        double rateResult = value.setScale(6, RoundingMode.HALF_UP).doubleValue();
 
         exchangeRates.setRate(rateResult);
 
@@ -131,7 +132,7 @@ public class ExchangeRateService {
             if (targetCur.getId() == 0) throw new CurrencyDidNotExist("Currency didn't exist in table");
 
             BigDecimal value = new BigDecimal(rate);
-            double rateResult = value.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+            double rateResult = value.setScale(6, RoundingMode.HALF_UP).doubleValue();
 
             ExchangeRates exchangeRates = new ExchangeRates(baseCur, targetCur, rateResult);
             ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
