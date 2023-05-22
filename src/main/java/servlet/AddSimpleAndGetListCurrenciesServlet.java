@@ -25,9 +25,6 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
         String name = req.getParameter("name");
         String code = req.getParameter("code").toUpperCase();
         String sign = req.getParameter("sign");
-        System.out.println("name: " + name);
-        System.out.println("code: " + code);
-        System.out.println("sign: " + sign);
 
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         PrintWriter out = resp.getWriter();
