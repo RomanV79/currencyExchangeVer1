@@ -1,11 +1,9 @@
 package service;
 
 import MyException.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import dao.daoImpl.CurrenciesDaoImpl;
 import dao.daoImpl.ExchangeRatesDaoImpl;
+import dto.ExchangeRatesDTO;
 import entity.Currencies;
 import entity.ExchangeRates;
 import java.math.BigDecimal;
@@ -15,13 +13,13 @@ import static service.ObjectToJson.getSimpleJson;
 
 public class ExchangeRateService {
 
-    public static String getExchangeResult(String from, String to, String amount) throws CurrencyPairIsNotValid, RateOrAmountIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
+    public static ExchangeRatesDTO getExchangeResult(String from, String to, String amount) throws CurrencyPairIsNotValid, RateOrAmountIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         from = from.toUpperCase();
         to = to.toUpperCase();
         if (from.equals(to)) throw new CurrencyPairIsNotValid("Currency is not valid");
 
-        if (!isValidCurrency(from) || !isValidCurrency(to)) throw new CurrencyPairIsNotValid("Currency is not valid");
-        if (!isValidRate(amount)) throw new RateOrAmountIsNotValid("Rate or amount is not valid");
+        if (isCurrencyValid(from) || isCurrencyValid(to)) throw new CurrencyPairIsNotValid("Currency is not valid");
+        if (!isRateValid(amount)) throw new RateOrAmountIsNotValid("Rate or amount is not valid");
 
         double amountDouble = Double.parseDouble(amount);
 
@@ -59,17 +57,7 @@ public class ExchangeRateService {
         BigDecimal rateFormat = new BigDecimal(rateRow);
         double rate = rateFormat.setScale(2, RoundingMode.HALF_UP).doubleValue();
 
-        ExchangeRates exRateOriginal = new ExchangeRates(baseCur, targetCur, rate);
-        String json = getSimpleJson(exRateOriginal);
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-        jsonObject.addProperty("amount", amountDouble);
-        jsonObject.addProperty("convertedAmount", convertedAmount);
-
-        String result = gson.toJson(jsonObject).replace("\"id\": 0,\n", "");
-
-        return result;
+        return new ExchangeRatesDTO(baseCur, targetCur, rate, amountDouble, convertedAmount);
     }
     public static String[] getValidExchangePair(String pair) throws CurrencyPairIsNotValid {
         String message = "CurrencyPairIsNotValid";
@@ -100,7 +88,7 @@ public class ExchangeRateService {
 
     public static String getResponseAfterUpdate(String pair, String rate) throws CurrencyPairIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         String[] curPair = getValidExchangePair(pair);
-        if (!isValidRate(rate)) throw new CurrencyPairIsNotValid("Fill correct currency or rate to fields");
+        if (!isRateValid(rate)) throw new CurrencyPairIsNotValid("Fill correct currency or rate to fields");
         CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         Currencies curBase = cdi.getByCode(curPair[0]);
         Currencies curTarget = cdi.getByCode(curPair[1]);
@@ -122,7 +110,7 @@ public class ExchangeRateService {
         baseCurrency = baseCurrency.toUpperCase();
         targetCurrency = targetCurrency.toUpperCase();
 
-        if (validateCurrencyName(baseCurrency) && validateCurrencyName(targetCurrency) && isValidRate(rate)) {
+        if (validateCurrencyName(baseCurrency) && validateCurrencyName(targetCurrency) && isRateValid(rate)) {
             CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
 
             Currencies baseCur = cdi.getByCode(baseCurrency);
@@ -149,12 +137,12 @@ public class ExchangeRateService {
         return currencyName.matches("[A-Z]*") && currencyName.length() == 3;
     }
 
-    private static boolean isValidRate(String rate) throws NumberFormatException {
+    private static boolean isRateValid(String rate) throws NumberFormatException {
         double rateDouble = Double.parseDouble(rate);
         return true;
     }
 
-    private static boolean isValidCurrency(String currency) {
-        return currency.length() == 3 && currency.matches("[A-Z]*");
+    private static boolean isCurrencyValid(String currency) {
+        return currency.length() != 3 || !currency.matches("[A-Z]*");
     }
 }

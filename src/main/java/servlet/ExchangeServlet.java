@@ -5,11 +5,11 @@ import MyException.CurrencyPairIsNotValid;
 import MyException.ExchangeRatesIsNotExistException;
 import MyException.RateOrAmountIsNotValid;
 import Utils.AlertMessage;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.ObjectToJson;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,7 +21,7 @@ import static service.ExchangeRateService.getExchangeResult;
 public class ExchangeServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String from = req.getParameter("from");
         String to = req.getParameter("to");
         String amount = req.getParameter("amount");
@@ -31,7 +31,7 @@ public class ExchangeServlet extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         try {
-            String result = getExchangeResult(from, to, amount);
+            String result = ObjectToJson.getSimpleJson(getExchangeResult(from, to, amount));
             out.print(result);
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (CurrencyPairIsNotValid | RateOrAmountIsNotValid | ExchangeRatesIsNotExistException e) {
