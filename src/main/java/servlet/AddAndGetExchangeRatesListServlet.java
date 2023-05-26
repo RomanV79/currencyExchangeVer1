@@ -4,7 +4,7 @@ import MyException.CurrencyAlreadyExistsException;
 import MyException.CurrencyDidNotExist;
 import MyException.CurrencyPairIsNotValid;
 import Utils.AlertMessage;
-import dao.daoImpl.ExchangeRatesDaoImpl;
+import dao.daoImpl.ExchangeRatesDao;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ import static service.ObjectToJson.getListToJson;
 @WebServlet(urlPatterns = "/exchangeRates")
 public class AddAndGetExchangeRatesListServlet extends HttpServlet {
 
-    private static final ExchangeRatesDaoImpl exDAO = new ExchangeRatesDaoImpl();
+    private static final ExchangeRatesDao exDAO = new ExchangeRatesDao();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

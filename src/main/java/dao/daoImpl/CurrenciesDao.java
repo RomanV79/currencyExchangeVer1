@@ -2,28 +2,33 @@ package dao.daoImpl;
 
 import MyException.CurrencyAlreadyExistsException;
 import MyException.CurrencyDidNotExist;
+import MyException.NoIdReturnAfterAddException;
+import MyException.ServiceDidntAnswerException;
 import Utils.UtilsDB;
-import dao.CurrenciesDAO;
+import dao.DAO;
 import entity.Currencies;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
+public class CurrenciesDao extends UtilsDB implements DAO<Currencies> {
+
+    private List<Currencies> currenciesList = new ArrayList<>();
 
     @Override
-    public int add(Currencies currencies) throws CurrencyAlreadyExistsException, SQLException {
-        Connection connection = getConnect();
-
-        PreparedStatement preparedStatement = null;
+    public int add(Currencies currencies) throws CurrencyAlreadyExistsException,
+                                                ServiceDidntAnswerException,
+                                                NoIdReturnAfterAddException {
         int id = 0;
 
         String sql = "INSERT INTO Currencies (Code, FullName, Sign) " +
                 "VALUES (?, ?, ?)";
 
-        try {
-            preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        try (Connection connection = getConnect();
+             PreparedStatement preparedStatement =
+                     connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
+
             preparedStatement.setString(1, currencies.getCode());
             preparedStatement.setString(2, currencies.getFullName());
             preparedStatement.setString(3, currencies.getSign());
@@ -35,65 +40,57 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
                     id = resultId.getInt(1);
                 } else {
                     connection.rollback();
-                    throw new SQLException("No ID returned...");
+                    throw new NoIdReturnAfterAddException("Add is not success, no ID returned...");
                 }
             }
 
         } catch (SQLException e) {
             if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
                 throw new CurrencyAlreadyExistsException("Currency already exist");
+            } else {
+                throw new ServiceDidntAnswerException("Service didn't answer");
             }
 
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
         }
 
         return id;
     }
 
     @Override
-    public Currencies getById(int id) throws SQLException {
-        Connection connection = getConnect();
+    public Optional<Currencies> getById(int id) throws ServiceDidntAnswerException,
+                                                        CurrencyDidNotExist {
 
-        Currencies currencies = new Currencies();
-        PreparedStatement preparedStatement = null;
-
+        Currencies currencies;
         String sql = "SELECT * FROM Currencies WHERE ID = ?";
 
-        try {
-            preparedStatement = connection.prepareStatement(sql);
+        try (Connection connection = getConnect();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
             preparedStatement.setInt(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
+            System.out.println(resultSet.getInt(1));
 
+            currencies = new Currencies();
             currencies.setId(resultSet.getInt("ID"));
             currencies.setCode(resultSet.getString("Code"));
             currencies.setFullName(resultSet.getString("FullName"));
             currencies.setSign(resultSet.getString("Sign"));
 
+            if (currencies.getId() == 0) throw new CurrencyDidNotExist("CurrencyDoesNotExist");
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
+            throw new ServiceDidntAnswerException("Service didn't answer");
         }
 
-        return currencies;
+        return Optional.ofNullable(currencies);
     }
 
     @Override
-    public Currencies getByCode(String code) throws SQLException, CurrencyDidNotExist {
+    public Optional<Currencies> getByCode(String code) throws ServiceDidntAnswerException,
+                                                                CurrencyDidNotExist {
 
-        Currencies currencies = new Currencies();
+        Currencies currencies;
         String sql = "SELECT * FROM Currencies WHERE Code = ?";
 
         try (Connection connection = getConnect();
@@ -102,29 +99,29 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
 
+            currencies = new Currencies();
             currencies.setId(resultSet.getInt("ID"));
             currencies.setCode(resultSet.getString("Code"));
             currencies.setFullName(resultSet.getString("FullName"));
             currencies.setSign(resultSet.getString("Sign"));
 
+            if (currencies.getId() == 0) throw new CurrencyDidNotExist("CurrencyDoesNotExist");
+
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new ServiceDidntAnswerException("Service didn't answer");
         }
-        if (currencies.getId() == 0) throw new CurrencyDidNotExist("Currency didn't exist");
-        return currencies;
+
+        return Optional.ofNullable(currencies);
     }
 
     @Override
-    public List<Currencies> getAll() throws SQLException {
-        Connection connection = getConnect();
+    public List<Currencies> getAll() throws ServiceDidntAnswerException {
 
-        List<Currencies> currenciesList = new ArrayList<>();
         String sql = "SELECT * FROM Currencies";
-        Statement statement = null;
 
-        try {
-            statement = connection.createStatement();
+        try (Connection connection = getConnect();
+            Statement statement = connection.createStatement();) {
+
             ResultSet resultSet = statement.executeQuery(sql);
 
             while(resultSet.next()) {
@@ -138,26 +135,18 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
+            throw new ServiceDidntAnswerException("Service didn't answer");
         }
 
         return currenciesList;
     }
 
     @Override
-    public void update(Currencies currencies) throws SQLException {
+    public void update(Currencies currencies) throws ServiceDidntAnswerException {
 
         String sql = "UPDATE Currencies" +
-                " SET Code = ?, FullName = ?, Sign = ?" +
-                " WHERE ID = ?";
+                        " SET Code = ?, FullName = ?, Sign = ?" +
+                        " WHERE ID = ?";
 
         try (Connection connection = getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
@@ -170,12 +159,11 @@ public class CurrenciesDaoImpl extends UtilsDB implements CurrenciesDAO {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServiceDidntAnswerException("Service didn't answer");
         }
     }
 
-    @Override
-    public boolean isExist(Currencies currencies) throws SQLException {
-        return currencies.getId() != 0;
-    }
+//    public boolean isExist(Currencies currencies) throws SQLException {
+//        return currencies.getId() != 0;
+//    }
 }

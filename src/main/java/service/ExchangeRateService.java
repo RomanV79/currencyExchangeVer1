@@ -1,8 +1,8 @@
 package service;
 
 import MyException.*;
-import dao.daoImpl.CurrenciesDaoImpl;
-import dao.daoImpl.ExchangeRatesDaoImpl;
+import dao.daoImpl.CurrenciesDao;
+import dao.daoImpl.ExchangeRatesDao;
 import dto.ExchangeRatesDTO;
 import entity.Currencies;
 import entity.ExchangeRates;
@@ -13,8 +13,8 @@ import static service.ObjectToJson.getSimpleJson;
 
 public class ExchangeRateService {
 
-    private final static CurrenciesDaoImpl curDao = new CurrenciesDaoImpl();
-    private final static ExchangeRatesDaoImpl exDAO = new ExchangeRatesDaoImpl();
+    private final static CurrenciesDao curDao = new CurrenciesDao();
+    private final static ExchangeRatesDao exDAO = new ExchangeRatesDao();
 
     public static ExchangeRatesDTO getExchangeResult(String from, String to, String amount) throws CurrencyPairIsNotValid, RateOrAmountIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         from = from.toUpperCase();
@@ -32,17 +32,17 @@ public class ExchangeRateService {
         double convertedAmountRow;
         double rateRow;
         try {
-            exchangeRate = exDAO.getExchangeRateByCurPair(baseCur, targetCur);
+            exchangeRate = exDAO.getByCode(baseCur, targetCur);
             rateRow = exchangeRate.getRate();
         } catch (ExchangeRatesIsNotExistException e) {
             try {
-                exchangeRate = exDAO.getExchangeRateByCurPair(targetCur, baseCur);
+                exchangeRate = exDAO.getByCode(targetCur, baseCur);
                 rateRow = 1 / exchangeRate.getRate();
             } catch (ExchangeRatesIsNotExistException ex) {
                 Currencies currenciesUSD = curDao.getByCode("USD");
                 try {
-                    ExchangeRates baseRatesUSD = exDAO.getExchangeRateByCurPair(baseCur, currenciesUSD);
-                    ExchangeRates targetRatesUSD = exDAO.getExchangeRateByCurPair(currenciesUSD, targetCur);
+                    ExchangeRates baseRatesUSD = exDAO.getByCode(baseCur, currenciesUSD);
+                    ExchangeRates targetRatesUSD = exDAO.getByCode(currenciesUSD, targetCur);
                     rateRow = baseRatesUSD.getRate() * targetRatesUSD.getRate();
                 } catch (ExchangeRatesIsNotExistException exc) {
                     throw new ExchangeRatesIsNotExistException("Exchange rates not exist");
@@ -81,7 +81,7 @@ public class ExchangeRateService {
         Currencies curBase = curDao.getByCode(curPair[0]);
         Currencies curTarget = curDao.getByCode(curPair[1]);
         if (curBase.getId() == 0 || curTarget.getId() == 0) throw new CurrencyPairIsNotValid(message);
-        ExchangeRates exchangeRates = exDAO.getExchangeRateByCurPair(curBase, curTarget);
+        ExchangeRates exchangeRates = exDAO.getByCode(curBase, curTarget);
 
         if (exchangeRates.getId() == 0) throw new ExchangeRatesIsNotExistException("ExchangePair doesn't exist");
         return getSimpleJson(exchangeRates);
@@ -94,7 +94,7 @@ public class ExchangeRateService {
         Currencies curBase = curDao.getByCode(curPair[0]);
         Currencies curTarget = curDao.getByCode(curPair[1]);
 
-        ExchangeRates exchangeRates = exDAO.getExchangeRateByCurPair(curBase, curTarget);
+        ExchangeRates exchangeRates = exDAO.getByCode(curBase, curTarget);
 
         double rateResult = getDoubleFormat(doubleRate, 6);
 

@@ -2,7 +2,7 @@ package servlet;
 
 import MyException.CurrencyAlreadyExistsException;
 import Utils.AlertMessage;
-import dao.daoImpl.CurrenciesDaoImpl;
+import dao.daoImpl.CurrenciesDao;
 import entity.Currencies;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,7 +18,7 @@ import static service.ObjectToJson.getSimpleJson;
 @WebServlet(urlPatterns = "/currencies")
 public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
 
-    private static final CurrenciesDaoImpl curDAO = new CurrenciesDaoImpl();
+    private static final CurrenciesDao curDAO = new CurrenciesDao();
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
