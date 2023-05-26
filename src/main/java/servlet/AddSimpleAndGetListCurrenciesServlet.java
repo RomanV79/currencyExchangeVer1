@@ -4,12 +4,10 @@ import MyException.CurrencyAlreadyExistsException;
 import Utils.AlertMessage;
 import dao.daoImpl.CurrenciesDaoImpl;
 import entity.Currencies;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -19,8 +17,10 @@ import static service.ObjectToJson.getSimpleJson;
 
 @WebServlet(urlPatterns = "/currencies")
 public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
+
+    private static final CurrenciesDaoImpl curDAO = new CurrenciesDaoImpl();
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         String name = req.getParameter("name");
         String code = req.getParameter("code").toUpperCase();
@@ -29,7 +29,6 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
         System.out.println("code: " + code);
         System.out.println("sign: " + sign);
 
-        CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         PrintWriter out = resp.getWriter();
         resp.setContentType("application/json");
         resp.setCharacterEncoding("utf-8");
@@ -37,8 +36,8 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
 
         if (!code.equals("") & !name.equals("") & !sign.equals("") & code.matches("[A-Z]*")) {
             try {
-                int id = cdi.add(new Currencies(code, name, sign));
-                result = getSimpleJson(cdi.getById(id));
+                int id = curDAO.add(new Currencies(code, name, sign));
+                result = getSimpleJson(curDAO.getById(id));
                 resp.setStatus(HttpServletResponse.SC_OK);
                 out.println(result);
                 out.flush();
@@ -64,14 +63,13 @@ public class AddSimpleAndGetListCurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
         PrintWriter out = resp.getWriter();
         resp.setContentType("application/json");
         resp.setCharacterEncoding("utf-8");
 
         try {
             resp.setStatus(HttpServletResponse.SC_OK);
-            out.print(getListToJson(cdi.getAll()));
+            out.print(getListToJson(curDAO.getAll()));
             out.flush();
 
         } catch (SQLException e) {

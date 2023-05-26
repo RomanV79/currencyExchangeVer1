@@ -5,12 +5,10 @@ import MyException.CurrencyDidNotExist;
 import MyException.CurrencyPairIsNotValid;
 import Utils.AlertMessage;
 import dao.daoImpl.ExchangeRatesDaoImpl;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -22,15 +20,16 @@ import static service.ObjectToJson.getListToJson;
 @WebServlet(urlPatterns = "/exchangeRates")
 public class AddAndGetExchangeRatesListServlet extends HttpServlet {
 
+    private static final ExchangeRatesDaoImpl exDAO = new ExchangeRatesDaoImpl();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
         resp.setContentType("application/json");
         resp.setCharacterEncoding("utf-8");
-        ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
 
         try {
-            out.print(getListToJson(erdi.getAll()));
+            out.print(getListToJson(exDAO.getAll()));
             resp.setStatus(HttpServletResponse.SC_OK);
             out.flush();
         } catch (Exception e) {
@@ -41,7 +40,7 @@ public class AddAndGetExchangeRatesListServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("utf-8");
         Map<String, String[]> params = req.getParameterMap();

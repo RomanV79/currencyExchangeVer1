@@ -13,6 +13,9 @@ import static service.ObjectToJson.getSimpleJson;
 
 public class ExchangeRateService {
 
+    private final static CurrenciesDaoImpl curDao = new CurrenciesDaoImpl();
+    private final static ExchangeRatesDaoImpl exDAO = new ExchangeRatesDaoImpl();
+
     public static ExchangeRatesDTO getExchangeResult(String from, String to, String amount) throws CurrencyPairIsNotValid, RateOrAmountIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         from = from.toUpperCase();
         to = to.toUpperCase();
@@ -22,27 +25,24 @@ public class ExchangeRateService {
         if (!isRateValid(amount)) throw new RateOrAmountIsNotValid("Rate or amount is not valid");
 
         double amountDouble = Double.parseDouble(amount);
+        Currencies baseCur = curDao.getByCode(from);
+        Currencies targetCur = curDao.getByCode(to);
 
-        CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        Currencies baseCur = cdi.getByCode(from);
-        Currencies targetCur = cdi.getByCode(to);
-
-        ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
         ExchangeRates exchangeRate;
         double convertedAmountRow;
         double rateRow;
         try {
-            exchangeRate = erdi.getExchangeRateByCurPair(baseCur, targetCur);
+            exchangeRate = exDAO.getExchangeRateByCurPair(baseCur, targetCur);
             rateRow = exchangeRate.getRate();
         } catch (ExchangeRatesIsNotExistException e) {
             try {
-                exchangeRate = erdi.getExchangeRateByCurPair(targetCur, baseCur);
+                exchangeRate = exDAO.getExchangeRateByCurPair(targetCur, baseCur);
                 rateRow = 1 / exchangeRate.getRate();
             } catch (ExchangeRatesIsNotExistException ex) {
-                Currencies currenciesUSD = cdi.getByCode("USD");
+                Currencies currenciesUSD = curDao.getByCode("USD");
                 try {
-                    ExchangeRates baseRatesUSD = erdi.getExchangeRateByCurPair(baseCur, currenciesUSD);
-                    ExchangeRates targetRatesUSD = erdi.getExchangeRateByCurPair(currenciesUSD, targetCur);
+                    ExchangeRates baseRatesUSD = exDAO.getExchangeRateByCurPair(baseCur, currenciesUSD);
+                    ExchangeRates targetRatesUSD = exDAO.getExchangeRateByCurPair(currenciesUSD, targetCur);
                     rateRow = baseRatesUSD.getRate() * targetRatesUSD.getRate();
                 } catch (ExchangeRatesIsNotExistException exc) {
                     throw new ExchangeRatesIsNotExistException("Exchange rates not exist");
@@ -51,14 +51,17 @@ public class ExchangeRateService {
         }
 
         convertedAmountRow = amountDouble * rateRow;
-        BigDecimal valueAmount = new BigDecimal(convertedAmountRow);
-        double convertedAmount = valueAmount.setScale(2, RoundingMode.HALF_UP).doubleValue();
-
-        BigDecimal rateFormat = new BigDecimal(rateRow);
-        double rate = rateFormat.setScale(2, RoundingMode.HALF_UP).doubleValue();
+        double convertedAmount = getDoubleFormat(convertedAmountRow, 2);
+        double rate = getDoubleFormat(rateRow, 2);
 
         return new ExchangeRatesDTO(baseCur, targetCur, rate, amountDouble, convertedAmount);
     }
+
+    private static double getDoubleFormat(double doubleValue, int newScale) {
+        BigDecimal bigDecimal = new BigDecimal(doubleValue);
+        return bigDecimal.setScale(newScale, RoundingMode.HALF_UP).doubleValue();
+    }
+
     public static String[] getValidExchangePair(String pair) throws CurrencyPairIsNotValid {
         String message = "CurrencyPairIsNotValid";
         pair = pair.toUpperCase();
@@ -75,12 +78,10 @@ public class ExchangeRateService {
         String message = "CurrencyDoesNotExist";
         String[] curPair = getValidExchangePair(request);
 
-        CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
-        Currencies curBase = cdi.getByCode(curPair[0]);
-        Currencies curTarget = cdi.getByCode(curPair[1]);
+        Currencies curBase = curDao.getByCode(curPair[0]);
+        Currencies curTarget = curDao.getByCode(curPair[1]);
         if (curBase.getId() == 0 || curTarget.getId() == 0) throw new CurrencyPairIsNotValid(message);
-        ExchangeRates exchangeRates = erdi.getExchangeRateByCurPair(curBase, curTarget);
+        ExchangeRates exchangeRates = exDAO.getExchangeRateByCurPair(curBase, curTarget);
 
         if (exchangeRates.getId() == 0) throw new ExchangeRatesIsNotExistException("ExchangePair doesn't exist");
         return getSimpleJson(exchangeRates);
@@ -89,19 +90,17 @@ public class ExchangeRateService {
     public static String getResponseAfterUpdate(String pair, String rate) throws CurrencyPairIsNotValid, SQLException, CurrencyDidNotExist, ExchangeRatesIsNotExistException {
         String[] curPair = getValidExchangePair(pair);
         if (!isRateValid(rate)) throw new CurrencyPairIsNotValid("Fill correct currency or rate to fields");
-        CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
-        Currencies curBase = cdi.getByCode(curPair[0]);
-        Currencies curTarget = cdi.getByCode(curPair[1]);
+        double doubleRate = Double.parseDouble(rate);
+        Currencies curBase = curDao.getByCode(curPair[0]);
+        Currencies curTarget = curDao.getByCode(curPair[1]);
 
-        ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
-        ExchangeRates exchangeRates = erdi.getExchangeRateByCurPair(curBase, curTarget);
+        ExchangeRates exchangeRates = exDAO.getExchangeRateByCurPair(curBase, curTarget);
 
-        BigDecimal value = new BigDecimal(rate);
-        double rateResult = value.setScale(6, RoundingMode.HALF_UP).doubleValue();
+        double rateResult = getDoubleFormat(doubleRate, 6);
 
         exchangeRates.setRate(rateResult);
 
-        erdi.update(exchangeRates);
+        exDAO.update(exchangeRates);
 
         return getSimpleJson(exchangeRates);
     }
@@ -111,20 +110,18 @@ public class ExchangeRateService {
         targetCurrency = targetCurrency.toUpperCase();
 
         if (validateCurrencyName(baseCurrency) && validateCurrencyName(targetCurrency) && isRateValid(rate)) {
-            CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
 
-            Currencies baseCur = cdi.getByCode(baseCurrency);
+            Currencies baseCur = curDao.getByCode(baseCurrency);
             if (baseCur.getId() == 0) throw new CurrencyDidNotExist("Currency didn't exist in table");
 
-            Currencies targetCur = cdi.getByCode(targetCurrency);
+            Currencies targetCur = curDao.getByCode(targetCurrency);
             if (targetCur.getId() == 0) throw new CurrencyDidNotExist("Currency didn't exist in table");
 
-            BigDecimal value = new BigDecimal(rate);
-            double rateResult = value.setScale(6, RoundingMode.HALF_UP).doubleValue();
+            double doubleRate = Double.parseDouble(rate);
+            double rateResult = getDoubleFormat(doubleRate, 6);
 
             ExchangeRates exchangeRates = new ExchangeRates(baseCur, targetCur, rateResult);
-            ExchangeRatesDaoImpl erdi = new ExchangeRatesDaoImpl();
-            int id = erdi.add(exchangeRates);
+            int id = exDAO.add(exchangeRates);
             exchangeRates.setId(id);
 
             return getSimpleJson(exchangeRates);

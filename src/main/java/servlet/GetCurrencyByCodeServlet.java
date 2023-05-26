@@ -8,7 +8,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -17,6 +16,8 @@ import static service.ObjectToJson.getSimpleJson;
 
 @WebServlet(urlPatterns = "/currency/*")
 public class GetCurrencyByCodeServlet extends HttpServlet {
+
+    private static final CurrenciesDaoImpl curDAO = new CurrenciesDaoImpl();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
@@ -31,11 +32,10 @@ public class GetCurrencyByCodeServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
             } else {
-                CurrenciesDaoImpl cdi = new CurrenciesDaoImpl();
 
                 try {
-                    Currencies currencies = cdi.getByCode(curCode);
-                    if (!cdi.isExist(currencies)) {
+                    Currencies currencies = curDAO.getByCode(curCode);
+                    if (!curDAO.isExist(currencies)) {
                         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                         out.write(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
                     } else {
