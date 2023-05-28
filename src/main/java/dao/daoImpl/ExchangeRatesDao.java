@@ -15,9 +15,9 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
     List<ExchangeRates> exchangeRatesList = new ArrayList<>();
     private static final CurrenciesDao currenciesDao = new CurrenciesDao();
     @Override
-    public int add(ExchangeRates exchangeRates) throws CurrencyAlreadyExistsException,
-                                                        NoIdReturnAfterAddException,
-                                                        ServiceDidntAnswerException {
+    public int add(ExchangeRates exchangeRates) throws ExchangeRateAlreadyExistException,
+            NoIdReturnAfterAddException,
+            ServiceDidntAnswerException {
 
         String sql = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate)" +
                                 " VALUES(?, ?, ?)";
@@ -42,7 +42,7 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
             }
         } catch (SQLException e) {
             if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
-                throw new CurrencyAlreadyExistsException("Currency already exist");
+                throw new ExchangeRateAlreadyExistException("Exchangerate is already exist");
             } else {
                 throw new ServiceDidntAnswerException("Service didn't answer");
             }
@@ -95,7 +95,7 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
             exchangeRates.setBaseCurrencyId(currenciesBase);
             exchangeRates.setTargetCurrencyId(currenciesTarget);
 
-            if (exchangeRates.getId() == 0) throw new ExchangeRatesIsNotExistException("Exchange rate doesn't not exist");
+            if (exchangeRates.getId() == 0) return Optional.empty();
 
         } catch (SQLException e) {
             throw new ServiceDidntAnswerException("Service didn't answer");
@@ -178,12 +178,11 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
     }
 
     @Override
-    public Optional<ExchangeRates> getByCode(String code) throws ExchangeRatesIsNotExistException,
-                                                                    ServiceDidntAnswerException,
+    public Optional<ExchangeRates> getByCode(String code) throws ServiceDidntAnswerException,
                                                                     CurrencyDidNotExist {
+        code = code.toUpperCase();
         Currencies curBase = currenciesDao.getByCode(code.substring(0, 3)).get();
-        Currencies curTarget = currenciesDao.getByCode(code.substring(4, 6)).get();
-
+        Currencies curTarget = currenciesDao.getByCode(code.substring(3, 6)).get();
         ExchangeRates exchangeRates;
 
         String sql = "SELECT * FROM ExchangeRates\n" +
@@ -201,7 +200,7 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
             exchangeRates.setBaseCurrencyId(curBase);
             exchangeRates.setTargetCurrencyId(curTarget);
             exchangeRates.setRate(resultSet.getDouble("Rate"));
-            if (exchangeRates.getId() == 0) throw new ExchangeRatesIsNotExistException("Exchange rate doesn't not exist");
+            if (exchangeRates.getId() == 0) exchangeRates = null;
 
         } catch (SQLException e) {
             throw new ServiceDidntAnswerException("Service didn't answer");
@@ -209,4 +208,5 @@ public class ExchangeRatesDao extends UtilsDB implements DAO<ExchangeRates> {
 
         return Optional.ofNullable(exchangeRates);
     }
+
 }

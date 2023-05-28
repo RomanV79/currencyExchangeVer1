@@ -21,4 +21,25 @@ public class AlertMessage {
                 "message": "Currency doesn't exist"
             }""";
 
+    public static String MESSAGE_ERROR = """
+            {
+                "message": %s "
+            }
+            """;
+
+    public static String MESSAGE_ERROR_CURRENCY_IS_NOT_VALID = """
+            {
+                "message": "Currency is not valid"
+            }""";
+
+    public static String MESSAGE_ERROR_RATE_IS_NOT_VALID = """
+            {
+                "message": "Rate is not valid"
+            }""";
+
+    public static String MESSAGE_ERROR_EXCHANGE_RATE_DOES_NOT_EXIST = """
+            {
+                "message": "Exchange rate doesn't exist"
+            }""";
+
 }

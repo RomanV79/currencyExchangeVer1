@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface DAO<T> {
 
     // create
-    int add (T t) throws CurrencyAlreadyExistsException, ServiceDidntAnswerException, NoIdReturnAfterAddException;
+    int add (T t) throws CurrencyAlreadyExistsException, ServiceDidntAnswerException, NoIdReturnAfterAddException, ExchangeRateAlreadyExistException;
 
     // read
     Optional<T> getById(int id) throws ServiceDidntAnswerException, CurrencyDidNotExist, ExchangeRatesIsNotExistException;

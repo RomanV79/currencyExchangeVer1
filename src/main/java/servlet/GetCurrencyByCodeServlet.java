@@ -1,6 +1,7 @@
 package servlet;
 
 import MyException.CurrencyDidNotExist;
+import MyException.ServiceDidntAnswerException;
 import Utils.AlertMessage;
 import dao.daoImpl.CurrenciesDao;
 import entity.Currencies;
@@ -10,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
+
 
 import static service.ObjectToJson.getSimpleJson;
 
@@ -20,39 +21,35 @@ public class GetCurrencyByCodeServlet extends HttpServlet {
     private static final CurrenciesDao curDAO = new CurrenciesDao();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("utf-8");       
+
         PrintWriter out = resp.getWriter();
 
         String currencyCode = req.getParameter("currency-code");
 
         if (currencyCode == null) {
-            String curCode = getCurrencyFromUrl(req);
-            if (!isCurrencyExistInRequest(curCode)) {
+            currencyCode = getCurrencyFromUrl(req);
+            if (!isCurrencyExistInRequest(currencyCode)) {
+                out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+                out.flush();
             } else {
-
                 try {
-                    Currencies currencies = curDAO.getByCode(curCode);
-                    if (!curDAO.isExist(currencies)) {
-                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        out.write(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
-                    } else {
-                        resp.setStatus(HttpServletResponse.SC_OK);
-                        out.write(getSimpleJson(currencies));
-                    }
+                    Currencies currencies = curDAO.getByCode(currencyCode).get();
+                    out.print(getSimpleJson(currencies));
+                    resp.setStatus(HttpServletResponse.SC_OK);
                 } catch (CurrencyDidNotExist e) {
-                    out.print(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
+                    out.format(AlertMessage.MESSAGE_ERROR, e);
                     resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                } catch (SQLException e) {
+                } catch (ServiceDidntAnswerException e) {
+                    out.format(AlertMessage.MESSAGE_ERROR, e);
                     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    out.write(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                } finally {
+                    out.flush();
                 }
             }
 
         } else if (currencyCode.equals("") || !currencyCode.matches("[a-zA-Z]*")) {
-            out.write(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+            out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } else {
             String fullPath = req.getRequestURL().toString();

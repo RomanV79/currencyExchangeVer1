@@ -1,28 +1,33 @@
 package servlet;
 
 import MyException.CurrencyDidNotExist;
-import MyException.CurrencyPairIsNotValid;
 import MyException.ExchangeRatesIsNotExistException;
+import MyException.ServiceDidntAnswerException;
 import Utils.AlertMessage;
+import dao.daoImpl.ExchangeRatesDao;
+import entity.ExchangeRates;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+import service.ExchangeRateService;
+import service.ObjectToJson;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Optional;
 
-import static service.ExchangeRateService.getExchangeRatePair;
-import static service.ExchangeRateService.getResponseAfterUpdate;
 
 @WebServlet(urlPatterns = "/exchangeRate/*")
 public class GetExchangeRateByCodeServlet extends HttpServlet {
+
+    private static final UtilServlet UTIL_SERVLET = new UtilServlet();
+    private static final ExchangeRateService exchangeRateService = new ExchangeRateService();
+    private static final ExchangeRatesDao exDAO = new ExchangeRatesDao();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("utf-8");
         String exchangeRateField = req.getParameter("exchangeRateField");
         PrintWriter out = resp.getWriter();
 
@@ -33,18 +38,24 @@ public class GetExchangeRateByCodeServlet extends HttpServlet {
         if (exchangeRateField == null) {
             String pairReq = getPairFromUrl(req);
             if (isRequestExist(pairReq)) {
+                System.out.println(pairReq);
                 try {
-                    String answer = getExchangeRatePair(pairReq);
-                    out.print(answer);
-                    resp.setStatus(HttpServletResponse.SC_OK);
-                    out.flush();
-                } catch (CurrencyPairIsNotValid | CurrencyDidNotExist | ExchangeRatesIsNotExistException e) {
+                    Optional<ExchangeRates> tempObject = exDAO.getByCode(pairReq);
+                    if (!tempObject.isPresent()) {
+                        out.print(ObjectToJson.getSimpleJson(tempObject.get()));
+                        resp.setStatus(HttpServletResponse.SC_OK);
+                    } else {
+                        out.print(AlertMessage.MESSAGE_ERROR_EXCHANGE_RATE_DOES_NOT_EXIST);
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    }
+
+                } catch (CurrencyDidNotExist e) {
+                    out.format(AlertMessage.MESSAGE_ERROR, e);
                     resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
-                    out.flush();
-                } catch (SQLException e) {
+                } catch (ServiceDidntAnswerException e) {
+                    out.format(AlertMessage.MESSAGE_ERROR, e);
                     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    out.print(AlertMessage.MESSAGE_ERROR_WITH_WORK_BY_DATABASE);
+                } finally {
                     out.flush();
                 }
             }
@@ -93,24 +104,32 @@ public class GetExchangeRateByCodeServlet extends HttpServlet {
         }
 
         PrintWriter out = resp.getWriter();
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("utf-8");
 
-        if ((isRequestExist(pair) || queryPatch != null) && !rate.equals("")) {
-            try {
-                out.print(getResponseAfterUpdate(pair, rate));
-                resp.setStatus(HttpServletResponse.SC_OK);
-            } catch (CurrencyPairIsNotValid e) {
-                out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            } catch (CurrencyDidNotExist |ExchangeRatesIsNotExistException e) {
-                out.print(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
-            out.flush();
-        } else {
-            out.print(AlertMessage.MESSAGE_ERROR_CORRECT_FILL_FIELD);
+        if (!UTIL_SERVLET.isExchangePairValid(pair)) {
+            out.print(AlertMessage.MESSAGE_ERROR_CURRENCY_IS_NOT_VALID);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.flush();
+            return;
+        }
+
+        if (!UTIL_SERVLET.isRateValid(rate)) {
+            out.format(AlertMessage.MESSAGE_ERROR_RATE_IS_NOT_VALID);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.flush();
+            return;
+        }
+
+        System.out.println("pair = " + pair);
+        try {
+            out.print(ObjectToJson.getSimpleJson(exchangeRateService.updateExchangeRate(pair, rate)));
+            resp.setStatus(HttpServletResponse.SC_OK);
+        } catch (CurrencyDidNotExist | ExchangeRatesIsNotExistException e) {
+            out.print(AlertMessage.MESSAGE_ERROR_CURRENCY_DOES_NOT_EXIST);
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (ServiceDidntAnswerException e) {
+            out.format(AlertMessage.MESSAGE_ERROR, e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
             out.flush();
         }
     }
